@@ -1,7 +1,7 @@
 FROM php:7.0-apache
 
 # install the PHP extensions we need
-RUN apt-get update && apt-get install -y libpng12-dev libjpeg-dev cron && rm -rf /var/lib/apt/lists/* \
+RUN apt-get update && apt-get install -y libpng12-dev libjpeg-dev cron supervisor && rm -rf /var/lib/apt/lists/* \
 	&& docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr \
 	&& docker-php-ext-install gd mysqli opcache
 
@@ -19,11 +19,16 @@ RUN { \
 RUN a2enmod rewrite expires
 
 # VOLUME /var/www/html
+# VOLUME /var/www/includes
+# VOLUME /etc/crontab
+# VOLUME /etc/apache2/sites-enabled
 
 COPY docker-php-ext-custom.ini /usr/local/etc/php/conf.d/
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat
 
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # ENTRYPOINT resets CMD
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["apache2-foreground"]
+CMD ["/usr/bin/supervisord"]
