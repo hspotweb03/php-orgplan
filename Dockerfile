@@ -32,4 +32,4 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # ENTRYPOINT resets CMD
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["/usr/bin/supervisord"]
+CMD ["/usr/bin/supervisord","-c","/etc/supervisor/supervisord.conf"]
