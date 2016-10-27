@@ -22,6 +22,7 @@ RUN a2enmod rewrite expires
 # VOLUME /var/www/includes
 # VOLUME /etc/crontab
 # VOLUME /etc/apache2/sites-enabled
+# VOLUME /var/www/sites
 
 COPY docker-php-ext-custom.ini /usr/local/etc/php/conf.d/
 COPY docker-entrypoint.sh /usr/local/bin/
