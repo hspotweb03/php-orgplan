@@ -26,11 +26,9 @@ sed -i -e 's/\(.*\)\(MaxConnectionsPerChild\)\(.*\)/\1\2\t250/g' /etc/apache2/mo
 sed -i -e 's/\(^ServerTokens\)\(.*\)/\1\ Prod/g' /etc/apache2/conf-available/security.conf
 sed -i -e 's/\(^ServerSignature\)\(.*\)/\1\ Off/g' /etc/apache2/conf-available/security.conf
 
-crontab /etc/crontab
-
 if [ ! -f /etc/apache2/sites-enabled/000-default.conf ]; then
 
-tee /etc/apache2/sites-enabled/000-default.conf <<EOF
+tee /etc/apache2/sites-enabled/000-default.conf <<'EOF'
 <VirtualHost *:80>
         # The ServerName directive sets the request scheme, hostname and port that
         # the server uses to identify itself. This is used when creating
@@ -50,8 +48,13 @@ tee /etc/apache2/sites-enabled/000-default.conf <<EOF
         # modules, e.g.
         #LogLevel info ssl:warn
 
-        ErrorLog ${APACHE_LOG_DIR}/error.log
-        CustomLog ${APACHE_LOG_DIR}/access.log combined
+	LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
+        LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy
+        SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined env=!forwarded
+        CustomLog ${APACHE_LOG_DIR}/access.log proxy env=forwarded
 
         # For most configuration files from conf-available/, which are
         # enabled or disabled at a global level, it is possible to
@@ -60,9 +63,8 @@ tee /etc/apache2/sites-enabled/000-default.conf <<EOF
         # after it has been globally disabled with "a2disconf".
         #Include conf-available/serve-cgi-bin.conf
 </VirtualHost>
-
-# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
 EOF
+
 chown www-data. /etc/apache2/sites-enabled/000-default.conf
 
 fi
